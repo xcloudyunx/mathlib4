@@ -18,19 +18,19 @@ variable {V : Type*} (G : SimpleGraph V)
 variable [Fintype V] [DecidableRel G.Adj]
 
 /-- A graph is a *cycle* if it is connected, every vertex has degree 2. -/
-def IsCycle : Prop := G.Connected ∧ (∀ (v : V), G.degree v = 2)
+def IsCycleGraph : Prop := G.Connected ∧ (∀ (v : V), G.degree v = 2)
 
-namespace IsCycle
+namespace IsCycleGraph
 
-lemma Connected (c : G.IsCycle) : G.Connected := by
+lemma Connected (c : G.IsCycleGraph) : G.Connected := by
   obtain ⟨hC, _⟩ := c
   exact hC
 
-lemma all_vertices_degree_two (c : G.IsCycle) : ∀ (v : V), G.degree v = 2 := by
+lemma all_vertices_degree_two (c : G.IsCycleGraph) : ∀ (v : V), G.degree v = 2 := by
   obtain ⟨_, hD⟩ := c
   exact hD
 
-lemma vertex_card_eq_edge_card (c : G.IsCycle) : Fintype.card V = Fintype.card G.edgeSet := by
+lemma vertex_card_eq_edge_card (c : G.IsCycleGraph) : Fintype.card V = Fintype.card G.edgeSet := by
   obtain ⟨hC, hD⟩ := c
   have hVCard : ∑ (v : V), G.degree v = 2*(Fintype.card V) := by
     simp [← Finset.card_univ]
@@ -47,7 +47,7 @@ lemma vertex_card_eq_edge_card (c : G.IsCycle) : Fintype.card V = Fintype.card G
   simp at h
   simp [h]
 
-lemma three_le_card (c : G.IsCycle) : 3 ≤ Fintype.card V := by
+lemma three_le_card (c : G.IsCycleGraph) : 3 ≤ Fintype.card V := by
   obtain ⟨hC, hD⟩ := c
   rw [connected_iff] at hC
   obtain ⟨_, hNE⟩ := hC
@@ -59,7 +59,7 @@ lemma three_le_card (c : G.IsCycle) : 3 ≤ Fintype.card V := by
 
 variable {v w : V}
 
-lemma IsCycles (c : G.IsCycle) : G.IsCycles := by
+lemma IsCycles (c : G.IsCycleGraph) : G.IsCycles := by
   intro v
   obtain ⟨hC, hD⟩ := c
   have hNC : ∀ (v : V), Fintype.card (G.neighborSet v) = 2 := by
@@ -75,7 +75,7 @@ lemma IsCycles (c : G.IsCycle) : G.IsCycles := by
   simp at hN
   simp [hNNE, Set.ncard_eq_toFinset_card', hN]
 
-lemma exists_adj (c : G.IsCycle) : ∃ (w : V), G.Adj v w := by
+lemma exists_adj (c : G.IsCycleGraph) : ∃ (w : V), G.Adj v w := by
   obtain ⟨hC, hD⟩ := c
   have hD : G.degree v > 0 := by
     rw [hD]
@@ -83,65 +83,44 @@ lemma exists_adj (c : G.IsCycle) : ∃ (w : V), G.Adj v w := by
   simp [G.degree_pos_iff_exists_adj] at hD
   exact hD
 
-lemma neighbor_nonempty (c : G.IsCycle) : (G.neighborSet v).Nonempty := by
+lemma neighbor_nonempty (c : G.IsCycleGraph) : (G.neighborSet v).Nonempty := by
   obtain ⟨w, hw⟩ := c.exists_adj
   have h4 : w ∈ G.neighborSet v := hw
   use w
 
-lemma no_bridges (c : G.IsCycle) (h : G.Adj v w) : ¬G.IsBridge s(v, w) := by
+lemma no_bridges (c : G.IsCycleGraph) (h : G.Adj v w) : ¬G.IsBridge s(v, w) := by
   have h1 : G.IsCycles := c.IsCycles
   have h3 : (G.deleteEdges {s(v, w)}).Reachable v w := by
     apply IsCycles.reachable_deleteEdges h h1
   simp [isBridge_iff, h]
   exact h3
 
--- lemma isCyclic (c : G.IsCycle) : ∃ (v : V) (p : G.Walk v v), p.IsCycle := by
---   have cCopy : G.IsCycle := c
---   obtain ⟨hC, _⟩ := cCopy
---   rw [connected_iff] at hC
---   obtain ⟨_, ⟨v⟩⟩ := hC
---   obtain ⟨w, hw⟩ := c.exists_adj
---   have h7 : (G \ fromEdgeSet {s(v, w)}).Reachable v w := by
---     apply IsCycles.reachable_deleteEdges hw c.IsCycles
---   have h8 : G.Adj v w ∧ (G \ fromEdgeSet {s(v, w)}).Reachable v w := by trivial
---   rw [adj_and_reachable_delete_edges_iff_exists_cycle] at h8
---   obtain ⟨u, p, ⟨hCyc, _⟩⟩ := h8
---   use u
---   use p
-
--- lemma notAcyclic (c : G.IsCycle) : ¬G.IsAcyclic := by
---   unfold IsAcyclic
---   simp
---   exact c.isCyclic
-
--- lemma notTree (c : G.IsCycle) : ¬G.IsTree := by simp [G.isTree_iff, c.notAcyclic]
-
-lemma notTree (c : G.IsCycle) : ¬G.IsTree := by
+lemma notTree (c : G.IsCycleGraph) : ¬G.IsTree := by
   simp [G.isTree_iff_connected_and_card, c.vertex_card_eq_edge_card]
 
-lemma notAcyclic (c : G.IsCycle) : ¬G.IsAcyclic := by
+lemma notAcyclic (c : G.IsCycleGraph) : ¬G.IsAcyclic := by
   have hT : ¬G.IsTree := c.notTree
   obtain ⟨hC, _⟩ := c
   simp [G.isTree_iff, hC] at hT
   exact hT
 
-lemma isCyclic (c : G.IsCycle) : ∃ (v : V) (p : G.Walk v v), p.IsCycle := by
+lemma isCyclic (c : G.IsCycleGraph) : ∃ (v : V) (p : G.Walk v v), p.IsCycle := by
   have hA : ¬G.IsAcyclic := c.notAcyclic
   unfold IsAcyclic at hA
   simp at hA
   exact hA
 
-lemma all_vertices_form_a_cycle (c : G.IsCycle) : ∃ (p : G.Walk v v), p.IsCycle := by
+lemma all_vertices_form_a_cycle (c : G.IsCycleGraph) : ∃ (p : G.Walk v v), p.IsCycle := by
   have h2 : v ∈ G.connectedComponentMk v := ConnectedComponent.connectedComponentMk_mem
   have h3 : (G.neighborSet v).Nonempty := by
     obtain ⟨w, hw⟩ := c.exists_adj
     have h31 : w ∈ G.neighborSet v := hw
     use w
-  obtain ⟨pp, hppc, _⟩ :=
+  obtain ⟨p, hpc, _⟩ :=
     IsCycles.exists_cycle_toSubgraph_verts_eq_connectedComponentSupp c.IsCycles h2 h3
-  use pp
+  use p
 
-lemma cycle_walk_contains_all_vertices {p : G.Walk v v} (c : G.IsCycle) (h : p.IsCycle) :
+lemma cycle_walk_contains_all_vertices {p : G.Walk v v} (c : G.IsCycleGraph) (h : p.IsCycle) :
     ∀ (v : V), v ∈ p.support := by
   intro w
   have hC : G.Connected := c.Connected
@@ -174,7 +153,7 @@ lemma cycle_walk_contains_all_vertices {p : G.Walk v v} (c : G.IsCycle) (h : p.I
   rw [← mem_verts_toSubgraph]
   exact h2
 
-lemma cycle_walk_tail_contains_all_vertices {p : G.Walk v v} (c : G.IsCycle) (h : p.IsCycle) :
+lemma cycle_walk_tail_contains_all_vertices {p : G.Walk v v} (c : G.IsCycleGraph) (h : p.IsCycle) :
     ∀ (v : V), v ∈ p.support.tail := by
   have h0 : ∀ (v : V), v ∈ p.support ↔ v ∈ p.support.tail := by
     intro w
@@ -194,7 +173,7 @@ lemma cycle_walk_tail_contains_all_vertices {p : G.Walk v v} (c : G.IsCycle) (h 
 
 variable [DecidableEq V]
 
-lemma cycle_walk_contains_all_edges {p : G.Walk v v} (c : G.IsCycle) (h : p.IsCycle) :
+lemma cycle_walk_contains_all_edges {p : G.Walk v v} (c : G.IsCycleGraph) (h : p.IsCycle) :
     ∀ e ∈ G.edgeSet, e ∈ p.edges := by
   have h8 : p.edges.Nodup := h.edges_nodup
   have h2 : p.support.tail.length = Fintype.card V := by
@@ -228,7 +207,7 @@ lemma cycle_walk_contains_all_edges {p : G.Walk v v} (c : G.IsCycle) (h : p.IsCy
   simp at h14
   exact h14
 
-theorem isEulerian (c : G.IsCycle) : ∃ (v : V) (p : G.Walk v v), p.IsEulerian
+theorem isEulerian (c : G.IsCycleGraph) : ∃ (v : V) (p : G.Walk v v), p.IsEulerian
     := by
   simp [isEulerian_iff]
   obtain ⟨v, p, hC⟩ := c.isCyclic
@@ -238,7 +217,7 @@ theorem isEulerian (c : G.IsCycle) : ∃ (v : V) (p : G.Walk v v), p.IsEulerian
   simp [hT]
   exact c.cycle_walk_contains_all_edges G hC
 
-lemma isHamiltonian (c : G.IsCycle) : G.IsHamiltonian := by
+lemma isHamiltonian (c : G.IsCycleGraph) : G.IsHamiltonian := by
   unfold IsHamiltonian
   intro
   simp [isHamiltonianCycle_iff_isCycle_and_support_count_tail_eq_one]
@@ -252,6 +231,42 @@ lemma isHamiltonian (c : G.IsCycle) : G.IsHamiltonian := by
     apply List.count_eq_one_of_mem hC.support_nodup h
   exact h
 
-end IsCycle
+end IsCycleGraph
+
+lemma Walk.IsCycle.coe_subgraph_is_cycle_graph {v : V} (p : G.Walk v v) [Fintype p.toSubgraph.verts]
+    [DecidableRel p.toSubgraph.coe.Adj] (h : p.IsCycle) : p.toSubgraph.coe.IsCycleGraph := by
+  have h1 : p.toSubgraph.coe.Connected := p.toSubgraph_connected.coe
+  have h2 : ∀ v ∈ p.support, (p.toSubgraph.neighborSet v).ncard = 2 := by
+    intro v hv
+    exact h.ncard_neighborSet_toSubgraph_eq_two hv
+  have h3 : ∀ v ∈ p.toSubgraph.verts, (p.toSubgraph.neighborSet v).ncard = 2 := by
+    intro v hv
+    rw [mem_verts_toSubgraph] at hv
+    apply h2
+    exact hv
+  have h4 : ∀ (v : ↑p.toSubgraph.verts), (p.toSubgraph.coe.neighborSet v).ncard = 2 := by
+    intro v
+    have h41 := p.toSubgraph.coeNeighborSetEquiv v
+    have h42 := v.prop
+    have h43 := h3 v h42
+    have h44 := h41.cardinal_eq
+    unfold neighborSet at *
+    unfold Subgraph.neighborSet at *
+    simp at h41
+    simp at h44
+    simp
+    simp [← Nat.cast_card, ← Nat.cast_card] at h44
+    simp [← Set.Nat.card_coe_set_eq] at h43
+    simp [← Set.Nat.card_coe_set_eq]
+    rw [h44, h43]
+  have h5 : ∀ (v : ↑p.toSubgraph.verts), (p.toSubgraph.coe.degree v) = 2 := by
+    intro v
+    rw [← card_neighborFinset_eq_degree]
+    unfold neighborFinset
+    rw [← Set.ncard_eq_toFinset_card']
+    apply h4
+  have h6 : p.toSubgraph.coe.Connected ∧
+      ∀ (v : ↑p.toSubgraph.verts), (p.toSubgraph.coe.degree v) = 2 := by trivial
+  exact h6
 
 end SimpleGraph
